@@ -14,10 +14,9 @@
       shell: "{{ item.cmd }}"
       with_items:
         - cmd: . /home/vagrant/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot && pyenv local csebot
-        #- cmd: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv local csebot
       args:
         chdir: /home/vagrant/csebot
-        creates: "/home/vagrant/.pyenv/versions/csebot" ###
+        creates: "/home/vagrant/.pyenv/versions/csebot"
 
     - name: Install requirements
       become: yes
@@ -31,7 +30,7 @@
       with_items:
         - cmd: python /home/vagrant/csebot/sqlite/deploysSchema.py
       args:
-        creates: /home/vagrant/deploys.db ###
+        creates: /home/vagrant/deploys.db
 
     - name: Create sqlite database
       become: yes
@@ -40,7 +39,7 @@
       with_items:
         - cmd: python /home/vagrant/csebot/schema.py
       args:
-        creates: /home/vagrant/camera_dupes.db ###
+        creates: /home/vagrant/camera_dupes.db
 
     - name: Copy pm2 config file from local to remote
       become: yes
