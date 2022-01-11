@@ -13,9 +13,10 @@
       become_user: "vagrant"
       shell: "{{ item.cmd }}"
       with_items:
-        - cmd: . /home/vagrant/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot
-        - cmd: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv local csebot
+        - cmd: . /home/vagrant/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot && pyenv local csebot
+        #- cmd: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv local csebot
       args:
+        chdir: /home/vagrant/csebot
         creates: "/home/vagrant/.pyenv/versions/csebot" ###
 
     - name: Install requirements
@@ -40,6 +41,19 @@
         - cmd: python /home/vagrant/csebot/schema.py
       args:
         creates: /home/vagrant/camera_dupes.db ###
+
+    - name: Copy pm2 config file from local to remote
+      become: yes
+      become_user: "vagrant"
+      copy:
+        src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/local.config.js
+        dest: /home/vagrant/csebot/
+    # - name: Delete copied files
+    #   file:
+    #     path: "{{ item }}"
+    #     state: absent
+    #   with_items:
+    #     - /home/vagrant/local.config.js
 
     - name: Delete any old pm2 process
       become: yes
