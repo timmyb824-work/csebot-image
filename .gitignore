@@ -1,0 +1,5 @@
+ansible/files/
+.vagrant
+.python-version
+notes.txt
+.DS_Store

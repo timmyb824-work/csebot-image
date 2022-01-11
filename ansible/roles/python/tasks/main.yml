@@ -1,0 +1,77 @@
+---
+# tasks file for python
+- name: Upgrade all packages
+  yum:
+    name: "*"
+    state: latest
+- name: Install required packages
+  yum:
+    name:
+      - gcc
+      - zlib-devel
+      - bzip2
+      - bzip2-devel
+      - readline-devel
+      - sqlite
+      - sqlite-devel
+      - openssl-devel
+      - tk-devel
+      - libffi-devel
+      - xz-devel
+      - gcc-c++
+      - make
+    state: present
+
+- name: check pyenv installed
+  become: yes
+  become_user: "vagrant"
+  command: which pyenv
+  register: pyenv_check
+  ignore_errors: yes
+
+- name: Install pyenv
+  git:
+    repo: https://github.com/pyenv/pyenv
+    dest: "/home/vagrant/.pyenv"
+  when: pyenv_check.rc != 0
+  ignore_errors: yes
+
+- name: Install pyenv-virtualenv plugin
+  git:
+    repo: https://github.com/pyenv/pyenv-virtualenv
+    dest: "/home/vagrant/.pyenv/plugins/pyenv-virtualenv"
+  when: pyenv_check.rc != 0
+  ignore_errors: yes
+
+- name: Add path to .bashrc for pyenv
+  lineinfile:
+    dest: "/home/vagrant/.bashrc"
+    state: present
+    create: yes
+    line: "{{ item }}"
+  with_items:
+    - 'export PYENV_ROOT="$HOME/.pyenv"'
+    - 'export PATH="$PYENV_ROOT/bin:$PATH"'
+    - 'eval "$(pyenv init -)"'
+    - 'eval "$(pyenv virtualenv-init -)"'
+
+- name: Ensure .pyenv permissions are set properly
+  file:
+    path: /home/vagrant/.pyenv
+    recurse: yes
+    owner: vagrant
+    group: vagrant
+    state: directory
+
+- name: check python installed
+  become: yes
+  become_user: "vagrant"
+  command: test -e /home/vagrant/.pyenv/versions/'{{ PYTHON_VER }}'/envs/csebot/bin/python
+  register: python_check
+  ignore_errors: yes
+
+- name: Install default python version with pyenv
+  become: yes
+  become_user: "vagrant"
+  shell: . /home/vagrant/.bashrc && pyenv install '{{ PYTHON_VER }}' && pyenv global '{{ PYTHON_VER }}'
+  when: python_check.rc != 0

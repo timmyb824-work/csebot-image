@@ -1,0 +1,28 @@
+---
+# tasks file for node-pm2
+- name: install nodejs
+  become_user: "vagrant"
+  become: yes
+  shell: "{{ item.cmd }}"
+  with_items:
+    - cmd: curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -
+    - cmd: sudo yum install -y nodejs
+
+- name: Install pm2
+  npm:
+    name: pm2
+    state: latest
+    global: yes
+
+- name: Copy pm2 config file from local to remote
+  become: yes
+  become_user: "vagrant"
+  copy:
+    src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/local.config.js
+    dest: /home/vagrant/csebot/
+# - name: Delete copied files
+#   file:
+#     path: "{{ item }}"
+#     state: absent
+#   with_items:
+#     - /home/vagrant/local.config.js

@@ -1,0 +1,61 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    PYTHON_VERSION: 3.9.5
+  roles:
+    - git
+    - python
+    - node-pm2
+  tasks:
+    - name: Create virtualenv
+      become: yes
+      become_user: "vagrant"
+      shell: "{{ item.cmd }}"
+      with_items:
+        - cmd: . /home/vagrant/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot
+        - cmd: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv local csebot
+      args:
+        creates: "/home/vagrant/.pyenv/versions/csebot" ###
+
+    - name: Install requirements
+      become: yes
+      become_user: "vagrant"
+      shell: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv exec pip install -r requirements.txt
+
+    - name: Create sqlite database
+      become: yes
+      become_user: "vagrant"
+      shell: "{{ item.cmd }}"
+      with_items:
+        - cmd: python /home/vagrant/csebot/sqlite/deploysSchema.py
+      args:
+        creates: /home/vagrant/deploys.db ###
+
+    - name: Create sqlite database
+      become: yes
+      become_user: "vagrant"
+      shell: "{{ item.cmd }}"
+      with_items:
+        - cmd: python /home/vagrant/csebot/schema.py
+      args:
+        creates: /home/vagrant/camera_dupes.db ###
+
+    - name: Delete any old pm2 process
+      become: yes
+      become_user: "vagrant"
+      command: pm2 delete $HOME/csebot/local.config.js
+      ignore_errors: yes
+
+    - name: Start pm2 process from config
+      become: yes
+      become_user: "vagrant"
+      command: pm2 start $HOME/csebot/local.config.js
+
+    # - name: Create and save pm2 startup script to keep app persistent
+    #   shell: "{{ item.cmd }}"
+    #   become: yes
+    #   become_user: "vagrant"
+    #   with_items:
+    #     - cmd: sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u vagrant --hp /home/vagrant
+    #     - cmd: pm2 save
