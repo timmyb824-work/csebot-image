@@ -24,7 +24,7 @@
 
 - name: check pyenv installed
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   command: which pyenv
   register: pyenv_check
   ignore_errors: yes
@@ -32,20 +32,20 @@
 - name: Install pyenv
   git:
     repo: https://github.com/pyenv/pyenv
-    dest: "/home/vagrant/.pyenv"
+    dest: "/home/ec2-user/.pyenv"
   when: pyenv_check.rc != 0
   ignore_errors: yes
 
 - name: Install pyenv-virtualenv plugin
   git:
     repo: https://github.com/pyenv/pyenv-virtualenv
-    dest: "/home/vagrant/.pyenv/plugins/pyenv-virtualenv"
+    dest: "/home/ec2-user/.pyenv/plugins/pyenv-virtualenv"
   when: pyenv_check.rc != 0
   ignore_errors: yes
 
 - name: Add path to .bashrc for pyenv
   lineinfile:
-    dest: "/home/vagrant/.bashrc"
+    dest: "/home/ec2-user/.bashrc"
     state: present
     create: yes
     line: "{{ item }}"
@@ -57,21 +57,21 @@
 
 - name: Ensure .pyenv permissions are set properly
   file:
-    path: /home/vagrant/.pyenv
+    path: /home/ec2-user/.pyenv
     recurse: yes
-    owner: vagrant
-    group: vagrant
+    owner: ec2-user
+    group: ec2-user
     state: directory
 
 - name: check python installed
   become: yes
-  become_user: "vagrant"
-  command: test -e /home/vagrant/.pyenv/versions/'{{ PYTHON_VER }}'/envs/csebot/bin/python
+  become_user: "ec2-user"
+  command: test -e /home/ec2-user/.pyenv/versions/'{{ PYTHON_VER }}'/envs/csebot/bin/python
   register: python_check
   ignore_errors: yes
 
 - name: Install default python version with pyenv
   become: yes
-  become_user: "vagrant"
-  shell: . /home/vagrant/.bashrc && pyenv install '{{ PYTHON_VER }}' && pyenv global '{{ PYTHON_VER }}'
+  become_user: "ec2-user"
+  shell: . /home/ec2-user/.bashrc && pyenv install '{{ PYTHON_VER }}' && pyenv global '{{ PYTHON_VER }}'
   when: python_check.rc != 0

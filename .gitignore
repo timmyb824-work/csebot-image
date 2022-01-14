@@ -3,3 +3,8 @@ ansible/files/
 .python-version
 notes.txt
 .DS_Store
+.terraform
+.terraform.lock.hcl
+commands.sh
+terraform.tfvars
+output.json

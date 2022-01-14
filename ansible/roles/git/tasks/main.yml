@@ -8,33 +8,33 @@
 
 - name: Check if SSH key is already present
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   stat:
     path: "{{ KEY_PATH }}"
   register: key_stat_result
 
 - name: Generate SSH key for accessing GitHub
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   command: "ssh-keygen -t rsa -f {{ KEY_PATH }} -N ''"
   when: not key_stat_result.stat.exists
 
 - name: Get key content
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   command: "cat {{ KEY_PATH }}.pub"
   register: key_content
 
 - name: Check if known_host exists
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   stat:
     path: "{{ KNOWN_HOSTS_PATH }}"
   register: known_hosts_stat
 
 - name: Create known_hosts if it doesn't exist
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   file:
     path: "{{ KNOWN_HOSTS_PATH }}"
     state: touch
@@ -42,24 +42,24 @@
 
 - name: Get the content of known hosts
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   shell: "cat {{ KNOWN_HOSTS_PATH }} | grep github.com"
   register: host_stat
   failed_when: host_stat.rc > 1
 
 - name: Modify known hosts
   become: yes
-  become_user: "vagrant"
+  become_user: "ec2-user"
   block:
     - name: Fetch GitHub public
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       command: ssh-keyscan -T 10 github.com
       register: keyscan
 
     - name: Add GitHub public key to ssh known_hosts
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       lineinfile:
         path: "{{ KNOWN_HOSTS_PATH }}"
         create: yes
@@ -69,7 +69,7 @@
 
     - name: Add SSH public key to GitHub account
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       uri:
         url: https://api.github.com/user/keys
         validate_certs: no
@@ -89,20 +89,20 @@
 
     - name: create csebot directory
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       file:
-        path: /home/vagrant/csebot
+        path: /home/ec2-user/csebot
         state: directory
         mode: 0700
 
     - name: Clone the repository
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       shell: GIT_SSH_COMMAND="ssh -i {{ KEY_PATH }} -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" {{ GIT_EXECUTABLE }} clone {{ GIT_REPO }} {{ CLONE_DEST }}
       args:
-        creates: "/home/vagrant/csebot/application.py" ###
+        creates: "/home/ec2-user/csebot/application.py" ###
 
     - name: Set core.sshCommand config for git
       become: yes
-      become_user: "vagrant"
-      shell: cd /home/vagrant/csebot && git config core.sshCommand "ssh -i /home/vagrant/.ssh/id_rsa_git -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      become_user: "ec2-user"
+      shell: cd /home/ec2-user/csebot && git config core.sshCommand "ssh -i /home/ec2-user/.ssh/id_rsa_git -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

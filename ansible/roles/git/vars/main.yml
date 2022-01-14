@@ -9,10 +9,10 @@ GITHUB_ACCESS_TOKEN: !vault |
   65663032663137663462386330656532653931356362613635623837346163623336393733646463
   3035613637656464306261636533323636623062633932663134
 KEY_TITLE: csebot-ssh-key-automation
-KEY_PATH: /home/vagrant/.ssh/id_rsa_git
+KEY_PATH: /home/ec2-user/.ssh/id_rsa_git
 GIT_REPO: git@github.com:simplisafe/csebot.git
 GIT_BRANCH: main
-CLONE_DEST: /home/vagrant/csebot/
-KNOWN_HOSTS_PATH: /home/vagrant/.ssh/known_hosts
+CLONE_DEST: /home/ec2-user/csebot/
+KNOWN_HOSTS_PATH: /home/ec2-user/.ssh/known_hosts
 GIT_EXECUTABLE: /usr/bin/git
 # PYTHON_VER: 3.9.5

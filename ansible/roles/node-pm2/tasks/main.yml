@@ -1,7 +1,7 @@
 ---
 # tasks file for node-pm2
 - name: install nodejs
-  become_user: "vagrant"
+  become_user: "ec2-user"
   become: yes
   shell: "{{ item.cmd }}"
   with_items:

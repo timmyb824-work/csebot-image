@@ -10,65 +10,85 @@
   tasks:
     - name: Create virtualenv
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       shell: "{{ item.cmd }}"
       with_items:
-        - cmd: . /home/vagrant/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot && pyenv local csebot
+        - cmd: . /home/ec2-user/.bashrc && pyenv virtualenv '{{ PYTHON_VERSION }}' csebot && pyenv local csebot
       args:
-        chdir: /home/vagrant/csebot
-        creates: "/home/vagrant/.pyenv/versions/csebot"
+        chdir: /home/ec2-user/csebot
+        creates: "/home/ec2-user/.pyenv/versions/csebot"
 
     - name: Install requirements
       become: yes
-      become_user: "vagrant"
-      shell: . /home/vagrant/.bashrc && cd $HOME/csebot && pyenv exec pip install -r requirements.txt
+      become_user: "ec2-user"
+      shell: . /home/ec2-user/.bashrc && cd $HOME/csebot && pyenv exec pip install -r requirements.txt
 
     - name: Create sqlite database
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       shell: "{{ item.cmd }}"
       with_items:
-        - cmd: python /home/vagrant/csebot/sqlite/deploysSchema.py
+        - cmd: python /home/ec2-user/csebot/sqlite/deploysSchema.py
       args:
-        creates: /home/vagrant/deploys.db
+        creates: /home/ec2-user/deploys.db
 
     - name: Create sqlite database
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       shell: "{{ item.cmd }}"
       with_items:
-        - cmd: python /home/vagrant/csebot/schema.py
+        - cmd: python /home/ec2-user/csebot/schema.py
       args:
-        creates: /home/vagrant/camera_dupes.db
+        creates: /home/ec2-user/camera_dupes.db
 
-    - name: Copy pm2 config file from local to remote
+    # - name: Copy pm2 config file from local to remote
+    #   become: yes
+    #   become_user: "ec2-user"
+    #   copy:
+    #     src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/local.config.js
+    #     dest: /home/ec2-user/csebot/
+
+    - name: Copy pm2 config into app directory
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       copy:
-        src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/local.config.js
-        dest: /home/vagrant/csebot/
-    # - name: Delete copied files
-    #   file:
-    #     path: "{{ item }}"
-    #     state: absent
-    #   with_items:
-    #     - /home/vagrant/local.config.js
+        src: /home/ec2-user/local.config.js
+        dest: $HOME/csebot/
+
+    - name: Delete copied file
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /home/ec2-user/local.config.js
+        - /home/ec2-user/.ansible_vault.pass
 
     - name: Delete any old pm2 process
       become: yes
-      become_user: "vagrant"
+      become_user: "ec2-user"
       command: pm2 delete $HOME/csebot/local.config.js
       ignore_errors: yes
 
-    - name: Start pm2 process from config
+    # need to fix so it only runs on first run
+    - name: Run pm2 startup script
       become: yes
-      become_user: "vagrant"
-      command: pm2 start $HOME/csebot/local.config.js
+      become_user: "ec2-user"
+      command: pm2 startup --service-name csebot
+      register: pm2_startup
+      ignore_errors: yes
 
-    # - name: Create and save pm2 startup script to keep app persistent
-    #   shell: "{{ item.cmd }}"
-    #   become: yes
-    #   become_user: "vagrant"
-    #   with_items:
-    #     - cmd: sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u vagrant --hp /home/vagrant
-    #     - cmd: pm2 save
+    - name: Run pm2 startup script to make app persistent
+      shell: "{{ item.cmd }}"
+      become: yes
+      become_user: "ec2-user"
+      when: pm2_startup.rc != 0
+      with_items:
+        - cmd: sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ec2-user --hp /home/ec2-user
+
+    - name: Start pm2 process from config and save it
+      shell: "{{ item.cmd }}"
+      become: yes
+      become_user: "ec2-user"
+      with_items:
+        - cmd: pm2 start $HOME/csebot/local.config.js
+        - cmd: pm2 save
