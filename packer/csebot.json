@@ -1,0 +1,46 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "profile": "{{user `profile`}}",
+      "region": "us-east-1",
+      "ami_name": "csebot-{{isotime `2006-01-02`}}",
+      "source_ami": "ami-0ed9277fb7eb570c9",
+      "instance_type": "t2.micro",
+      "ssh_username": "ec2-user"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "../ansible/files/",
+      "destination": "/home/ec2-user"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum update -y",
+        "sudo amazon-linux-extras install ansible2"
+      ]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../ansible/playbook.yml",
+      "role_paths": [
+        "../ansible/roles/git",
+        "../ansible/roles/python",
+        "../ansible/roles/node-pm2"
+      ],
+      "extra_arguments": [
+        "--vault-password-file",
+        "/home/ec2-user/.ansible_vault.pass"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "output.json"
+    }
+  ]
+}
