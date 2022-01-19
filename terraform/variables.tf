@@ -18,10 +18,10 @@ variable "instance_type" {
     description = "AWS instance type to use"
 }
 
-# variable "subnet_id" {
-#     type = string
-#     description = "AWS subnet ID to use"
-# }
+variable "subnet_id" {
+    type = string
+    description = "AWS subnet ID to use"
+}
 
 variable "key_name" {
     type = string
@@ -38,21 +38,16 @@ variable "sg_description" {
     description = "AWS security group description"
 }
 
-# variable "vpc_id" {
-#     type = string
-#     description = "AWS VPC ID to use"
-# }
+variable "vpc_id" {
+    type = string
+    description = "AWS VPC ID to use"
+}
 
 variable "tags" {
     type = map
     description = "AWS tags to apply to the resources"
     default = {}
 }
-
-# variable "private_key" {
-#     type = string
-#     description = "Path to the local SSH private key"
-# }
 
 variable "sg_ingress_rules" {
     type = map

@@ -8,3 +8,4 @@ notes.txt
 commands.sh
 terraform.tfvars
 output.json
+terraform.tfstate*

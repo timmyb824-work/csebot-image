@@ -3,6 +3,8 @@
     {
       "type": "amazon-ebs",
       "profile": "{{user `profile`}}",
+      "vpc_id": "{{user `vpc_id`}}",
+      "subnet_id": "{{user `subnet_id`}}",
       "region": "us-east-1",
       "ami_name": "csebot-{{isotime `2006-01-02`}}",
       "source_ami": "ami-0ed9277fb7eb570c9",

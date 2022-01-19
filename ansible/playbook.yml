@@ -45,14 +45,14 @@
     #   become: yes
     #   become_user: "ec2-user"
     #   copy:
-    #     src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/local.config.js
+    #     src: /Users/timothybryant/DevOps-Work/automation/csebot-image/ansible/files/stg.config.js
     #     dest: /home/ec2-user/csebot/
 
     - name: Copy pm2 config into app directory
       become: yes
       become_user: "ec2-user"
       copy:
-        src: /home/ec2-user/local.config.js
+        src: /home/ec2-user/stg.config.js
         dest: $HOME/csebot/
 
     - name: Delete copied file
@@ -60,13 +60,13 @@
         path: "{{ item }}"
         state: absent
       with_items:
-        - /home/ec2-user/local.config.js
+        - /home/ec2-user/stg.config.js
         - /home/ec2-user/.ansible_vault.pass
 
     - name: Delete any old pm2 process
       become: yes
       become_user: "ec2-user"
-      command: pm2 delete $HOME/csebot/local.config.js
+      command: pm2 delete $HOME/csebot/stg.config.js
       ignore_errors: yes
 
     # need to fix so it only runs on first run
@@ -90,5 +90,5 @@
       become: yes
       become_user: "ec2-user"
       with_items:
-        - cmd: pm2 start $HOME/csebot/local.config.js
+        - cmd: pm2 start $HOME/csebot/stg.config.js
         - cmd: pm2 save

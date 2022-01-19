@@ -25,7 +25,6 @@ data "aws_ami" "caebot-ami" {
     name   = "name"
     values = ["csebot-*"]
   }
-
 }
 
 # resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
@@ -42,12 +41,12 @@ data "aws_ami" "caebot-ami" {
 #   }
 # }
 
-#configure the aws instance
+# configure the aws instance
 resource "aws_instance" "csebot" {
   ami           = data.aws_ami.caebot-ami.id
   instance_type = var.instance_type
   vpc_security_group_ids = [aws_security_group.tls-sg.id]
-  # subnet_id = var.subnet_id
+  subnet_id = var.subnet_id
   key_name = var.key_name
   tags = var.tags
 }
@@ -55,7 +54,17 @@ resource "aws_instance" "csebot" {
 resource "aws_security_group" "tls-sg" {
   name = var.sg_name
   description = var.sg_description
-  # vpc_id = var.vpc_id
+  vpc_id = var.vpc_id
+
+  dynamic "ingress" {
+    for_each = var.sg_ingress_rules
+    content {
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
+  }
+}
 
   dynamic "ingress" {
     for_each = var.sg_ingress_rules
